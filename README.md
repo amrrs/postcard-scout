@@ -4,6 +4,8 @@
 
 Built for the SerpApi India Hackathon 2026 — Travel & Local Discovery.
 
+[Watch the 66-second local browser demo](https://github.com/amrrs/postcard-scout/releases/tag/demo-v2): live discovery, exact route optimization, Pareto evidence, fal trail illustration and exported provenance.
+
 ## Why it exists
 
 Travel inspiration often starts with invented or generic imagery and a separate search for real places. Postcard Scout starts with a live shortlist: the user sees actual place names, addresses, ratings, review counts and opening status, verifies a Maps link, and chooses a returned place before generating an illustration. A source-linked JSON trip card preserves the evidence and generation record.
@@ -20,7 +22,7 @@ cp .env.example .env
 python3 app.py
 ```
 
-Open http://127.0.0.1:8766. Enter a city, select heritage, nature or art museums, and click Discover places. Choose Illustrate this place, inspect the source/generation record, and download the trip card.
+Open http://127.0.0.1:8766. Enter a city, select heritage, nature or art museums, and click Discover places. Choose a planning mode, optimize a three-stop trail, inspect the objective and distance matrix, and illustrate the trail. You can also illustrate an individual returned place. Download the provenance JSON to preserve the search, plan and generation record.
 
 ## Meaningful SerpApi usage
 
@@ -37,14 +39,14 @@ No LLM is needed: the prompt is deterministically derived from live place metada
 ## Verification
 
 ```bash
-python3 -m unittest test_app
+python3 -m unittest discover
 ```
 
 Tests cover returned place provenance, Maps place ID links, prompt disclosure, queue completion, and safety-blocked images. Live verification retrieved six Jaipur heritage places and completed a fal generation. The demo shows the same locally running flow.
 
 ## Limits
 
-This is a local prototype, bound to loopback, with in-memory search/job records. Restarting clears them. It is not a multi-user service. Search results are a snapshot and can be outdated; verify with the venue. Generated art is explicitly labeled **AI illustration, not a photograph** and can depict architecture inaccurately. It is inspiration, not visual evidence or a route planner. The downloaded JSON includes the remote image URL; provider asset retention is outside this app's control. Queue timeout is three minutes and failures are shown without exposing secrets. Do not use a public deployment without authentication, rate limits and durable storage.
+This is a local prototype, bound to loopback, with in-memory search/job records. Restarting clears them. It is not a multi-user service. Search results are a snapshot and can be outdated; verify with the venue. Generated art is explicitly labeled **AI illustration, not a photograph** and can depict architecture inaccurately. The artwork is inspiration, not visual evidence. The planner optimizes straight-line paths over the returned candidates; it does not model road travel or opening-hour feasibility. The downloaded JSON includes the remote image URL; provider asset retention is outside this app's control. Queue timeout is three minutes and failures are shown without exposing secrets. Do not use a public deployment without authentication, rate limits and durable storage.
 
 ## AI disclosure
 
