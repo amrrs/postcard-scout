@@ -3,6 +3,7 @@ import json, os, time, uuid, threading, urllib.parse, urllib.request
 from pathlib import Path
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from planner import optimize
 ROOT=Path(__file__).parent
 SEARCHES={}; JOBS={}; LOCK=threading.Lock()
 
@@ -28,15 +29,19 @@ def discover(city,interest):
     places=[]
     for i,r in enumerate(data.get('local_results',[])[:6]):
         if not r.get('title') or not r.get('place_id'):continue
-        place={k:r.get(k) for k in ('title','place_id','rating','reviews','address','description','type','open_state','website')}
+        place={k:r.get(k) for k in ('title','place_id','rating','reviews','address','description','type','open_state','website','gps_coordinates')}
         place['maps_url']='https://www.google.com/maps/search/?api=1&query='+urllib.parse.quote(r['title']+' '+city)+'&query_place_id='+urllib.parse.quote(r['place_id'])
         places.append(place)
-    sid=str(uuid.uuid4());result={'id':sid,'city':city,'interest':interest,'query':q,'fetched_at':datetime.now(timezone.utc).isoformat(),'places':places,'searches_used':1}
+    sid=str(uuid.uuid4());result={'id':sid,'city':city,'interest':interest,'query':q,'fetched_at':datetime.now(timezone.utc).isoformat(),'places':places,'searches_used':1,'search_id':data.get('search_metadata',{}).get('id')}
     with LOCK:SEARCHES[sid]=result
     return result
 
 def make_prompt(search,place):
     description=(place.get('description') or place.get('type') or 'local attraction')[:600]
+    trail = search.get('plan')
+    if trail:
+        names = ', '.join(p['title'] for p in trail['stops'])
+        return f"An illustrated triptych travel postcard inspired by a heritage trail in {search['city']}: {names}. Three distinct scenic panels, one for each named landmark. Gouache, warm terracotta and deep indigo, cream paper, editorial art, no text. Conceptual illustration, not documentary evidence."
     return f"An illustrated travel postcard inspired by {place['title']} in {search['city']}. Visual inspiration from this live place listing: {description}. Hand painted gouache, warm terracotta, cream paper texture, deep indigo accents, elegant editorial composition, no text, no lettering. This is conceptual illustration, not a documentary photograph."
 
 def generate(jid,search,place):
@@ -77,10 +82,19 @@ class Handler(BaseHTTPRequestHandler):
                 city=str(data.get('city','')).strip();interest=str(data.get('interest','heritage')).strip()
                 if not city or len(city)>100 or interest not in ('heritage','nature','art museums'):raise ValueError('Enter a city and choose an interest.')
                 self.send_json(discover(city,interest))
+            elif self.path=='/api/plan':
+                search=SEARCHES.get(data.get('search_id'))
+                weight=float(data.get('distance_weight',.15))
+                if not search or not 0 <= weight <= 2: raise ValueError('Discover places first and choose a valid distance weight.')
+                plan=optimize(search['places'],3,weight)
+                if plan.get('error'):raise ValueError(plan['error'])
+                search['plan']=plan;self.send_json(plan)
             elif self.path=='/api/postcard':
                 search=SEARCHES.get(data.get('search_id'));place=next((p for p in search['places'] if p['place_id']==data.get('place_id')),None) if search else None
                 if not place:raise ValueError('Choose a place from a live search first.')
-                jid=str(uuid.uuid4());JOBS[jid]={'id':jid,'status':'Queued','place':place,'city':search['city'],'fetched_at':search['fetched_at'],'model':'fal-ai/flux/schnell','art_label':'AI illustration; not a photograph of the location'}
+                search=dict(search)
+                if not data.get('trail'): search.pop('plan',None)
+                jid=str(uuid.uuid4());JOBS[jid]={'id':jid,'status':'Queued','place':place,'city':search['city'],'fetched_at':search['fetched_at'],'model':'fal-ai/flux/schnell','art_label':'AI illustration; not a photograph of the location','plan':search.get('plan'),'serpapi_search_id':search.get('search_id')}
                 threading.Thread(target=generate,args=(jid,search,place),daemon=True).start();self.send_json(JOBS[jid],202)
             else:self.send_error(404)
         except ValueError as e:self.send_json({'error':str(e)},400)

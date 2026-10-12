@@ -1,6 +1,6 @@
 # Postcard Scout
 
-**Discover real places, then picture the trip.** A local travel inspiration tool combining SerpApi Google Maps discovery with fal.ai illustrated postcards.
+**Search. Optimize. Picture the trip.** A source-linked local itinerary optimizer combining SerpApi Google Maps discovery with fal.ai illustrated postcards.
 
 Built for the SerpApi India Hackathon 2026 — Travel & Local Discovery.
 
@@ -51,3 +51,13 @@ This is a local prototype, bound to loopback, with in-memory search/job records.
 OpenAI Codex designed, implemented, tested and documented the app. fal.ai FLUX.1 Schnell generates the postcard art. ScreenStudioly recorded and edited the local functionality demo. The project was created October 12, 2026.
 
 License: MIT. External API and model terms apply to their services and outputs.
+
+## Exact route optimization and Pareto tradeoffs
+
+`planner.py` forms a complete geodesic distance graph over up to six live geocoded candidates. It enumerates every three-stop subset and every permutation (6P3 = 120 route evaluations at six candidates). For each subset it selects the exact shortest open path; then it maximizes mean confidence-adjusted rating minus a user-selected distance penalty. Ratings are shrunk toward a 4-star / 50-review prior, making a 5-star listing with one review less influential than a well-reviewed 4.6-star place. The prior and distance weight are transparent assumptions, not learned or validated tourist preferences.
+
+The UI exposes the chosen sequence, full distance matrix, objective, search-order counterfactual for the same chosen stops, and nondominated Pareto alternatives. Balanced, Walkable and Highest rated modes change the quality/distance tradeoff. Generate a three-panel fal illustration of the selected trail and download its complete evidence/optimization/generation record.
+
+Live Jaipur check on October 12, 2026: six candidates, 120 routes, two Pareto alternatives; the selected three-stop path was 2.087 km geodesic vs 2.392 km for those same stops in search-result order (12.7% shorter). Local optimizer runtime in this one sample was 0.183 ms. These are single-run observations, not general performance or real road-distance claims. Five tests include exact-optimum comparison against an independent all-permutations baseline, symmetry/zero-distance checks, Bayesian shrinkage, missing geocodes, queue completion and safety rejection.
+
+**Scope:** exactness applies only to the bounded returned candidate set and stated objective. Straight-line distances omit roads, barriers and transport. No claim of shortest road route, verified walkability, optimal city-wide tour or feasible opening-hour schedule is made. The tool displays hours for human verification. fal art is a separate conceptual output; it is never used as evidence about a place.
