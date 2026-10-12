@@ -4,7 +4,7 @@
 
 Built for the SerpApi India Hackathon 2026 — Travel & Local Discovery.
 
-[Watch the 66-second local browser demo](https://github.com/amrrs/postcard-scout/releases/tag/demo-v2): live discovery, exact route optimization, Pareto evidence, fal trail illustration and exported provenance.
+[Watch the 66-second narrated local browser demo](https://github.com/amrrs/postcard-scout/releases/tag/demo-v3): live discovery, exact route optimization, Pareto evidence, fal trail illustration and exported provenance.
 
 ## Why it exists
 
@@ -63,3 +63,5 @@ The UI exposes the chosen sequence, full distance matrix, objective, search-orde
 Live Jaipur check on October 12, 2026: six candidates, 120 routes, two Pareto alternatives; the selected three-stop path was 2.087 km geodesic vs 2.392 km for those same stops in search-result order (12.7% shorter). Local optimizer runtime in this one sample was 0.183 ms. These are single-run observations, not general performance or real road-distance claims. Five tests include exact-optimum comparison against an independent all-permutations baseline, symmetry/zero-distance checks, Bayesian shrinkage, missing geocodes, queue completion and safety rejection.
 
 **Scope:** exactness applies only to the bounded returned candidate set and stated objective. Straight-line distances omit roads, barriers and transport. No claim of shortest road route, verified walkability, optimal city-wide tour or feasible opening-hour schedule is made. The tool displays hours for human verification. fal art is a separate conceptual output; it is never used as evidence about a place.
+
+The demo narration uses ElevenLabs TTS Turbo v2.5 through fal.ai. The real ScreenStudioly video is preserved, with synchronized narration and selectable English subtitles.
